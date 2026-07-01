@@ -23,6 +23,17 @@ Each Rank column stores the workshop's short code (e.g. `T2.2`) from the
 tracker's own `T#.#` numbering, not the full title, so it lines up directly
 with the planning tab.
 
+Because this endpoint has to be reachable from any visitor's browser with no
+login, it's deployed with "Who has access: Anyone" — which also means anyone
+who has the URL (visible in the page's public source) can POST to it
+directly, not just through the form. The script below guards against the two
+concrete risks that creates: it rejects submissions that aren't a
+`@wellcertified.com` email, and it neutralizes spreadsheet formula injection
+(a value like `=IMPORTXML(...)` sent as the email, which Sheets would
+otherwise execute as a live formula the next time someone opens the tab) by
+prefixing any cell value that starts with `=`, `+`, `-`, or `@` with a
+leading apostrophe so Sheets always stores it as plain text.
+
 1. Open the tracker spreadsheet → **Extensions → Apps Script**.
 2. Replace the code with:
 
@@ -30,35 +41,50 @@ with the planning tab.
    const SPREADSHEET_ID = "1Xn2vv8IGRkSf5JKayIixiQtk-WPB8dnZMunemyv2xsg";
    const SHEET_NAME = "Signups";
    const HEADER = ["Submitted at", "Email", "Time zone", "Rank 1", "Rank 2", "Rank 3", "Rank 4"];
+   const EMAIL_DOMAIN = "@wellcertified.com";
+
+   function sanitizeCell(v) {
+     const s = String(v == null ? "" : v);
+     return /^[=+\-@]/.test(s) ? "'" + s : s;
+   }
 
    function doPost(e) {
-     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-     let sheet = ss.getSheetByName(SHEET_NAME);
-     if (!sheet) sheet = ss.insertSheet(SHEET_NAME);
-     sheet.getRange(1, 1, 1, HEADER.length).setValues([HEADER]);
+     try {
+       const d = JSON.parse(e.postData.contents);
+       const email = String(d.email || "").trim().toLowerCase();
+       if (!email.endsWith(EMAIL_DOMAIN)) {
+         return ContentService.createTextOutput("rejected: email must be a " + EMAIL_DOMAIN + " address");
+       }
 
-     const d = JSON.parse(e.postData.contents);
-     const picks = d.picks || [];
-     const row = [
-       d.submittedAt || new Date().toISOString(),
-       d.email,
-       d.timezone || "",
-       picks[0] ? picks[0].code : "",
-       picks[1] ? picks[1].code : "",
-       picks[2] ? picks[2].code : "",
-       picks[3] ? picks[3].code : "",
-     ];
+       const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+       let sheet = ss.getSheetByName(SHEET_NAME);
+       if (!sheet) sheet = ss.insertSheet(SHEET_NAME);
+       sheet.getRange(1, 1, 1, HEADER.length).setValues([HEADER]);
 
-     const dataRows = sheet.getLastRow() - 1;
-     const emails = dataRows > 0 ? sheet.getRange(2, 2, dataRows, 1).getValues() : [];
-     const existingRow = emails.findIndex((r) => r[0] === d.email);
-     if (existingRow >= 0) {
-       sheet.getRange(existingRow + 2, 1, 1, row.length).setValues([row]);
-     } else {
-       sheet.appendRow(row);
+       const picks = d.picks || [];
+       const row = [
+         d.submittedAt || new Date().toISOString(),
+         email,
+         d.timezone || "",
+         picks[0] ? picks[0].code : "",
+         picks[1] ? picks[1].code : "",
+         picks[2] ? picks[2].code : "",
+         picks[3] ? picks[3].code : "",
+       ].map(sanitizeCell);
+
+       const dataRows = sheet.getLastRow() - 1;
+       const emails = dataRows > 0 ? sheet.getRange(2, 2, dataRows, 1).getValues() : [];
+       const existingRow = emails.findIndex((r) => r[0] === email);
+       if (existingRow >= 0) {
+         sheet.getRange(existingRow + 2, 1, 1, row.length).setValues([row]);
+       } else {
+         sheet.appendRow(row);
+       }
+
+       return ContentService.createTextOutput("ok");
+     } catch (err) {
+       return ContentService.createTextOutput("error: " + err.message);
      }
-
-     return ContentService.createTextOutput("ok");
    }
    ```
 
