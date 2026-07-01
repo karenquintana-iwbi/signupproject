@@ -16,7 +16,7 @@ const SHEET_ENDPOINT = "https://script.google.com/macros/s/AKfycbzfoFYsnLqj3Ia9M
 
 // Paste the OAuth Client ID from Google Cloud Console here — see SETUP.md.
 // Must match the GOOGLE_CLIENT_ID checked server-side in the Apps Script.
-const GOOGLE_CLIENT_ID = "";
+const GOOGLE_CLIENT_ID = "159241994186-hn1u6dqpugndna1u3jn4sjrqh4iioqgh.apps.googleusercontent.com";
 
 const TRACK1 = [
   { title: "A truly integrated product needs a fully integrated team", desc: "Designing the team structure, roles, and collaboration model that let product, tech, and standards operate as one fully integrated unit." },
