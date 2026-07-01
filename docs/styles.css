@@ -1,0 +1,180 @@
+/* IWBI Summer Workshop Signup — pixel match of Claude Design export (project/Workshop Signup.dc.html) */
+
+@font-face { font-family:"Mazzard Soft M"; src:url("fonts/mazzardsoftm-light.otf") format("opentype"); font-weight:300; font-display:swap; }
+@font-face { font-family:"Mazzard Soft M"; src:url("fonts/mazzardsoftm-regular.otf") format("opentype"); font-weight:400; font-display:swap; }
+@font-face { font-family:"Mazzard Soft M"; src:url("fonts/mazzardsoftm-medium.otf") format("opentype"); font-weight:500; font-display:swap; }
+@font-face { font-family:"Mazzard Soft M"; src:url("fonts/mazzardsoftm-semibold.otf") format("opentype"); font-weight:600; font-display:swap; }
+@font-face { font-family:"Mazzard Soft M"; src:url("fonts/mazzardsoftm-bold.otf") format("opentype"); font-weight:700; font-display:swap; }
+@font-face { font-family:"FtMade"; src:url("fonts/FTMade-Regular.woff2") format("woff2"), url("fonts/FTMade-Regular.woff") format("woff"); font-weight:400; font-display:swap; }
+
+* { box-sizing:border-box; }
+html, body { margin:0; }
+body {
+  font-family:"Mazzard Soft M", ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing:antialiased;
+  font-feature-settings:"ss01" on,"ss03" on;
+  background:#f2f4f5;
+}
+
+@keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+
+input::placeholder { color:#9fa2ab; }
+input:focus { outline:none; border-color:#39c9ea !important; box-shadow:0 0 0 3px rgba(57,201,234,.25); }
+
+/* ── Page shell ───────────────────────────────────────────── */
+.page {
+  min-height:100vh;
+  padding:40px 20px;
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+}
+.card {
+  --pad: 44px;
+  width:600px;
+  max-width:100%;
+  background:#fff;
+  border:1px solid #dedfe3;
+  border-radius:20px;
+  box-shadow:0 20px 40px -18px rgba(16,24,40,.22);
+  overflow:hidden;
+}
+
+/* ── Hero ─────────────────────────────────────────────────── */
+.hero {
+  position:relative;
+  padding:40px var(--pad) 32px;
+  background:linear-gradient(160deg,#fafeff 0%,#eafafd 100%);
+  border-bottom:1px solid #eff1f2;
+  overflow:hidden;
+}
+.hero-sphere { position:absolute; right:-46px; top:-30px; width:200px; height:200px; object-fit:contain; opacity:.9; pointer-events:none; }
+.hero-inner { position:relative; }
+.hero-badge { display:flex; align-items:center; gap:9px; color:#0f748a; margin-bottom:20px; }
+.hero-badge span { font-weight:600; font-size:11.5px; letter-spacing:.14em; }
+.hero h1 { margin:0; max-width:400px; font-family:'FtMade',serif; font-size:42px; line-height:1.04; letter-spacing:-.01em; color:#171820; }
+.hero p { margin:16px 0 0; max-width:430px; font-size:15px; line-height:1.6; color:#52545d; }
+
+/* ── Body ─────────────────────────────────────────────────── */
+.body { padding:32px var(--pad) 40px; }
+
+/* ── Track color band (shared by Track 01 and Tracks 02-04) ─ */
+.track { margin-bottom:30px; }
+.track:first-of-type { margin-bottom:36px; }
+.track-band {
+  margin:0 calc(var(--pad) * -1);
+  padding:30px var(--pad);
+  color:#fff;
+}
+.track-band.with-gap { margin-bottom:24px; }
+.track-band-head { display:flex; align-items:center; gap:14px; }
+.track-chip {
+  display:inline-flex; align-items:center; justify-content:center;
+  min-width:52px; height:52px; padding:0 12px; border-radius:14px;
+  background:rgba(255,255,255,.16); color:#fff;
+  font-family:'FtMade',serif; font-size:28px; line-height:1;
+}
+.track-label { font-weight:700; font-size:10.5px; letter-spacing:.16em; color:rgba(255,255,255,.82); margin-bottom:3px; }
+.track-name { font-weight:700; font-size:23px; line-height:1.1; color:#fff; }
+.track-copy { margin:16px 0 0; font-size:14px; line-height:1.6; color:rgba(255,255,255,.92); max-width:520px; }
+
+/* ── Track 01 (no sign-up) ───────────────────────────────── */
+.track1-list { padding-top:24px; display:flex; flex-direction:column; gap:16px; }
+.track1-item { display:flex; gap:12px; }
+.track1-dot { width:6px; height:6px; border-radius:9999px; background:#0a5161; flex:none; margin-top:7px; }
+.track1-title { font-weight:600; font-size:14.5px; color:#282a31; line-height:1.3; }
+.track1-desc { font-size:13px; color:#71747d; line-height:1.5; margin-top:3px; }
+.track1-sponsor { margin-top:4px; padding-top:16px; border-top:1px solid #eff1f2; font-size:12.5px; color:#71747d; }
+.track1-sponsor b { color:#52545d; }
+
+/* ── Workshop cards ───────────────────────────────────────── */
+.cards { display:flex; flex-direction:column; gap:12px; }
+.card-ws {
+  position:relative;
+  cursor:pointer;
+  background:#fff;
+  border:1px solid #dedfe3;
+  border-radius:14px;
+  padding:18px 20px;
+  transition:box-shadow .2s, transform .2s;
+}
+.card-ws:hover, .card-ws:focus-visible {
+  box-shadow:0 10px 22px -14px rgba(16,24,40,.28);
+  transform:translateY(-1px);
+}
+.card-ws:focus-visible { outline:2px solid #39c9ea; outline-offset:2px; }
+.card-ws .ring { position:absolute; inset:0; border:2px solid var(--accent); border-radius:14px; pointer-events:none; }
+.pick-badge {
+  position:absolute; top:-11px; left:18px;
+  display:flex; align-items:center; gap:6px; height:24px; padding:0 12px;
+  border-radius:9999px; background:var(--accent); color:#fff;
+  font-weight:700; font-size:12px; letter-spacing:.02em;
+}
+.card-ws-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+.card-code { font-weight:600; font-size:11px; letter-spacing:.06em; color:#9fa2ab; white-space:nowrap; }
+.card-sponsor { font-size:12px; color:#71747d; }
+.card-sponsor b { color:#52545d; }
+.card-title { margin:0 0 10px; font-size:18px; font-weight:600; line-height:1.25; color:#171820; }
+.card-prompt { margin:0 0 14px; font-size:13.5px; line-height:1.55; color:#52545d; }
+.card-teaser { border-left:2px solid var(--accent); padding-left:12px; margin-bottom:16px; }
+.card-teaser-label { font-weight:600; font-size:10.5px; letter-spacing:.09em; text-transform:uppercase; color:var(--accent); margin-bottom:3px; }
+.card-teaser-text { font-size:13.5px; font-style:italic; color:#3e4049; }
+.card-action { display:flex; align-items:center; gap:8px; font-weight:600; font-size:13.5px; color:var(--action-color); }
+.card-action-mark {
+  display:inline-flex; align-items:center; justify-content:center;
+  width:20px; height:20px; border-radius:9999px; border:1.5px solid var(--action-color);
+}
+
+/* ── Ranking panel ────────────────────────────────────────── */
+.rank-panel { background:#fafeff; border:1px solid #d6f4fb; border-radius:16px; padding:22px 24px; margin-top:8px; }
+.rank-panel-head { display:flex; align-items:baseline; justify-content:space-between; margin-bottom:6px; }
+.rank-panel-head h3 { margin:0; font-size:19px; font-weight:700; color:#171820; }
+.rank-count { font-size:12.5px; color:#71747d; }
+.rank-panel-desc { margin:0 0 16px; font-size:13.5px; line-height:1.5; color:#71747d; }
+.rank-slots { display:flex; flex-direction:column; gap:8px; }
+.rank-slot-filled { display:flex; align-items:center; gap:12px; background:#fff; border:1px solid #dedfe3; border-radius:12px; padding:10px 12px; }
+.rank-slot-num { font-family:'FtMade',serif; font-size:22px; color:var(--accent); min-width:20px; text-align:center; }
+.rank-slot-info { flex:1; min-width:0; }
+.rank-slot-title { font-weight:600; font-size:14px; color:#282a31; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.rank-slot-track { font-size:11.5px; color:#71747d; }
+.rank-slot-actions { display:flex; gap:4px; flex:none; }
+.rank-btn { width:28px; height:28px; border-radius:8px; border:1px solid #dedfe3; background:#fff; color:#52545d; cursor:pointer; display:flex; align-items:center; justify-content:center; font-family:inherit; font-size:14px; }
+.rank-btn:disabled { opacity:.35; cursor:not-allowed; }
+.rank-btn.remove { color:#c92e3f; }
+.rank-slot-empty { display:flex; align-items:center; gap:12px; border:1.5px dashed #cbe0f1; border-radius:12px; padding:10px 12px; }
+.rank-slot-empty .rank-slot-num { color:#cbcdd2; }
+.rank-slot-empty .rank-slot-hint { font-size:13px; color:#9fa2ab; }
+
+/* ── Email + submit ───────────────────────────────────────── */
+.form-footer { padding-top:26px; margin-top:8px; }
+.form-footer label { display:block; font-weight:600; font-size:13px; color:#3e4049; margin-bottom:7px; }
+.email-input { width:100%; height:46px; padding:0 16px; border:1px solid #dedfe3; border-radius:10px; font-family:inherit; font-size:15px; color:#282a31; background:#fff; margin-bottom:16px; }
+.submit-btn { width:100%; height:50px; border-radius:9999px; border:none; font-family:inherit; font-weight:700; font-size:15px; cursor:pointer; background:#0f748a; color:#fff; transition:background .15s; }
+.submit-btn:disabled { background:#eff1f2; color:#9fa2ab; cursor:not-allowed; }
+.submit-hint { margin:12px 0 0; text-align:center; font-size:12.5px; color:#9fa2ab; }
+
+/* ── Confirmation ─────────────────────────────────────────── */
+.confirm { padding:56px 44px; text-align:center; animation:fadeUp .4s ease; }
+.confirm-check { width:56px; height:56px; margin:0 auto 20px; border-radius:9999px; background:#e0fbf5; display:flex; align-items:center; justify-content:center; }
+.confirm h2 { margin:0; font-family:'FtMade',serif; font-size:34px; line-height:1.1; color:#171820; }
+.confirm p { margin:12px auto 0; max-width:380px; font-size:15px; line-height:1.6; color:#52545d; }
+.confirm p b { color:#282a31; }
+.confirm-box { margin:28px 0 0; text-align:left; background:#fafeff; border:1px solid #eff1f2; border-radius:14px; padding:20px 22px; }
+.confirm-box-label { font-weight:600; font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:#0f748a; margin-bottom:12px; }
+.confirm-row { display:flex; align-items:baseline; gap:12px; padding:8px 0; border-top:1px solid #f4f5f6; }
+.confirm-rank { font-family:'FtMade',serif; font-size:20px; color:var(--accent); min-width:22px; }
+.confirm-title { font-weight:600; font-size:15px; color:#282a31; }
+.confirm-track { font-size:12.5px; color:#71747d; }
+.confirm-actions { display:flex; gap:12px; justify-content:center; margin-top:24px; }
+.btn-secondary { padding:12px 22px; border-radius:9999px; border:1px solid #dedfe3; background:#fff; color:#282a31; font-family:inherit; font-weight:600; font-size:14px; cursor:pointer; }
+.btn-primary { padding:12px 22px; border-radius:9999px; border:none; background:#0f748a; color:#fff; font-family:inherit; font-weight:600; font-size:14px; cursor:pointer; }
+
+.hidden { display:none !important; }
+
+/* ── Mobile ───────────────────────────────────────────────── */
+@media (max-width:640px) {
+  .page { padding:0; }
+  .card { --pad:24px; width:100%; border-radius:0; border:none; box-shadow:none; }
+  .hero h1 { font-size:32px; }
+  .confirm { padding:48px 24px; }
+}
