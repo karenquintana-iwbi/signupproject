@@ -83,7 +83,7 @@ a leading apostrophe so Sheets always stores it as plain text.
    const SHEET_NAME = "Signups";
    const REJECTED_SHEET_NAME = "Rejected";
    const HEADER = ["Submitted at", "Email", "Time zone", "Rank 1", "Rank 2", "Rank 3", "Rank 4"];
-   const GOOGLE_CLIENT_ID = "PASTE-SAME-CLIENT-ID-AS-DOCS-APP-JS.apps.googleusercontent.com";
+   const GOOGLE_CLIENT_ID = "159241994186-hn1u6dqpugndna1u3jn4sjrqh4iioqgh.apps.googleusercontent.com";
    const HD_DOMAIN = "wellcertified.com";
    const EMAIL_DOMAIN = "@wellcertified.com"; // defense-in-depth fallback, see note below
 
