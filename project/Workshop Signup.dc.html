@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style>
+@font-face{font-family:"Mazzard Soft M";src:url("fonts/mazzardsoftm-light.otf") format("opentype");font-weight:300;font-display:swap}
+@font-face{font-family:"Mazzard Soft M";src:url("fonts/mazzardsoftm-regular.otf") format("opentype");font-weight:400;font-display:swap}
+@font-face{font-family:"Mazzard Soft M";src:url("fonts/mazzardsoftm-medium.otf") format("opentype");font-weight:500;font-display:swap}
+@font-face{font-family:"Mazzard Soft M";src:url("fonts/mazzardsoftm-semibold.otf") format("opentype");font-weight:600;font-display:swap}
+@font-face{font-family:"Mazzard Soft M";src:url("fonts/mazzardsoftm-bold.otf") format("opentype");font-weight:700;font-display:swap}
+@font-face{font-family:"FtMade";src:url("fonts/FTMade-Regular.woff2") format("woff2"),url("fonts/FTMade-Regular.woff") format("woff");font-weight:400;font-display:swap}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Mazzard Soft M",ui-sans-serif,system-ui,sans-serif;-webkit-font-smoothing:antialiased;font-feature-settings:"ss01" on,"ss03" on}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+input::placeholder{color:#9fa2ab}
+input:focus{outline:none;border-color:#39c9ea !important;box-shadow:0 0 0 3px rgba(57,201,234,.25)}
+</style>
+</helmet>
+
+<div style="min-height:100vh;padding:40px 20px;background:#f2f4f5;display:flex;justify-content:center;align-items:flex-start">
+
+      <div style="width:600px;background:#fff;border:1px solid #dedfe3;border-radius:20px;box-shadow:0 20px 40px -18px rgba(16,24,40,.22);overflow:hidden">
+
+        <!-- form OR confirmation -->
+        <sc-if value="{{ a.submitted }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:56px 44px;text-align:center;animation:fadeUp .4s ease">
+            <div style="width:56px;height:56px;margin:0 auto 20px;border-radius:9999px;background:#e0fbf5;display:flex;align-items:center;justify-content:center">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#17aa8d" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            </div>
+            <h2 style="margin:0;font-family:'FtMade',serif;font-size:34px;line-height:1.1;color:#171820">You're in.</h2>
+            <p style="margin:12px auto 0;max-width:380px;font-size:15px;line-height:1.6;color:#52545d">Thanks — your ranking is recorded for <b style="color:#282a31">{{ a.email }}</b>. We'll use everyone's picks to shape who builds what this summer.</p>
+            <div style="margin:28px 0 0;text-align:left;background:#fafeff;border:1px solid #eff1f2;border-radius:14px;padding:20px 22px">
+              <div style="font-weight:600;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#0f748a;margin-bottom:12px">Your ranking</div>
+              <sc-for list="{{ a.conf }}" as="row" hint-placeholder-count="2">
+                <div style="display:flex;align-items:baseline;gap:12px;padding:8px 0;border-top:1px solid #f4f5f6">
+                  <span style="font-family:'FtMade',serif;font-size:20px;color:{{ row.accent }};min-width:22px">{{ row.rank }}</span>
+                  <div><div style="font-weight:600;font-size:15px;color:#282a31">{{ row.title }}</div><div style="font-size:12.5px;color:#71747d">{{ row.track }}</div></div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display:flex;gap:12px;justify-content:center;margin-top:24px">
+              <button onClick="{{ a.onCopy }}" style="padding:12px 22px;border-radius:9999px;border:1px solid #dedfe3;background:#fff;color:#282a31;font-family:inherit;font-weight:600;font-size:14px;cursor:pointer">{{ a.copyLabel }}</button>
+              <button onClick="{{ a.onEdit }}" style="padding:12px 22px;border-radius:9999px;border:none;background:#0f748a;color:#fff;font-family:inherit;font-weight:600;font-size:14px;cursor:pointer">Edit my picks</button>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ a.editing }}" hint-placeholder-val="{{ true }}">
+        <div>
+          <!-- HERO -->
+          <div style="position:relative;padding:40px 44px 32px;background:linear-gradient(160deg,#fafeff 0%,#eafafd 100%);border-bottom:1px solid #eff1f2;overflow:hidden">
+            <img src="assets/half-sphere.png" alt="" style="position:absolute;right:-46px;top:-30px;width:200px;height:200px;object-fit:contain;opacity:.9;pointer-events:none">
+            <div style="position:relative">
+              <div style="display:flex;align-items:center;gap:9px;color:#0f748a;margin-bottom:20px">
+                <svg width="60" height="15" viewBox="0 0 64 16" fill="none"><path d="M53.5868 0H55.0485C55.6026 0 56.0325 0.404706 56.0325 0.969412V12.8941H63.016C63.5701 12.8941 64 13.2988 64 13.8447V15.0306C64 15.5765 63.5701 16 63.016 16H53.5868C53.0327 16 52.6028 15.5765 52.6028 15.0306V0.969412C52.6028 0.404706 53.0423 0 53.5868 0Z" fill="currentColor"></path><path d="M39.9826 0H41.4442C41.9983 0 42.4282 0.404706 42.4282 0.969412V12.8941H49.4118C49.9659 12.8941 50.3958 13.2988 50.3958 13.8447V15.0306C50.3958 15.5765 49.9659 16 49.4118 16H39.9826C39.4285 16 38.9986 15.5765 38.9986 15.0306V0.969412C38.9986 0.404706 39.4285 0 39.9826 0Z" fill="currentColor"></path><path d="M25.4615 0H35.5212C36.0944 0 36.5052 0.404706 36.5052 0.969412V2.15529C36.5052 2.70118 36.0944 3.12471 35.5212 3.12471H27.9072V6.37176H34.222C34.7761 6.37176 35.206 6.77647 35.206 7.32235V8.50824C35.206 9.07294 34.7761 9.47765 34.222 9.47765H27.9072V12.8941H35.6359C36.2091 12.8941 36.6199 13.2988 36.6199 13.8447V15.0306C36.6199 15.5765 36.2091 16 35.6359 16H25.4615C24.9074 16 24.4775 15.5765 24.4775 15.0306V0.969412C24.4775 0.404706 24.9074 0 25.4615 0Z" fill="currentColor"></path><path d="M2.26579 0C2.81989 0 3.37399 0.376471 3.53639 0.922353L6.56483 10.4941L9.51684 0.856471C9.66014 0.357647 10.1665 0 10.6728 0H11.6855C12.2109 0 12.7172 0.357647 12.8605 0.856471L15.8412 10.5035L18.8314 0.922353C18.9747 0.376471 19.5288 0 20.102 0H21.6401C22.1942 0 22.4808 0.404706 22.2898 0.922353L17.4653 15.1435C17.2933 15.6141 16.7965 16 16.2616 16H15.2489C14.7426 16 14.2362 15.6424 14.0929 15.1435L11.1887 5.92L8.25578 15.1435C8.11248 15.6424 7.60615 16 7.08071 16H6.08716C5.58083 16 5.0745 15.6235 4.91209 15.1435L0.0589489 0.922353C-0.13212 0.404706 0.154483 0 0.727688 0H2.26579Z" fill="currentColor"></path></svg>
+                <span style="font-weight:600;font-size:11.5px;letter-spacing:.14em">SUMMER WORKSHOPS · 2026</span>
+              </div>
+              <h1 style="margin:0;max-width:400px;font-family:'FtMade',serif;font-size:42px;line-height:1.04;letter-spacing:-.01em;color:#171820">Rank the work you want to build.</h1>
+              <p style="margin:16px 0 0;max-width:430px;font-size:15px;line-height:1.6;color:#52545d">This summer we're prototyping our biggest strategic questions with AI as the build partner. Tell us which sessions you most want to be part of — choose up to four and put them in order. As few as one is fine.</p>
+            </div>
+          </div>
+
+          <div style="padding:32px 44px 40px">
+
+            <!-- TRACK 01 -->
+            <div style="margin-bottom:36px">
+              <div style="background:#0a5161;margin:0 -44px;padding:30px 44px;color:#fff">
+                <div style="display:flex;align-items:center;gap:14px">
+                  <span style="display:inline-flex;align-items:center;justify-content:center;min-width:52px;height:52px;padding:0 12px;border-radius:14px;background:rgba(255,255,255,.16);color:#fff;font-family:'FtMade',serif;font-size:28px;line-height:1">01</span>
+                  <div>
+                    <div style="font-weight:700;font-size:10.5px;letter-spacing:.16em;color:rgba(255,255,255,.82);margin-bottom:3px">TRACK 01 · NOT FOR RANKING</div>
+                    <div style="font-weight:700;font-size:23px;line-height:1.1;color:#fff">New Ways of Working</div>
+                  </div>
+                </div>
+                <p style="margin:18px 0 0;font-size:14px;line-height:1.6;color:rgba(255,255,255,.92);max-width:520px">This track shapes our org design and ways of working — a shared, collaborative effort with no prototype to build, and it uses AI differently from the innovation series. Nothing to rank here: relevant participants will be added to these sessions by the sponsor.</p>
+              </div>
+              <div style="padding-top:24px;display:flex;flex-direction:column;gap:16px">
+                <sc-for list="{{ track1 }}" as="t1" hint-placeholder-count="4">
+                  <div style="display:flex;gap:12px">
+                    <span style="width:6px;height:6px;border-radius:9999px;background:#0a5161;flex:none;margin-top:7px"></span>
+                    <div>
+                      <div style="font-weight:600;font-size:14.5px;color:#282a31;line-height:1.3">{{ t1.title }}</div>
+                      <div style="font-size:13px;color:#71747d;line-height:1.5;margin-top:3px">{{ t1.desc }}</div>
+                    </div>
+                  </div>
+                </sc-for>
+                <div style="margin-top:4px;padding-top:16px;border-top:1px solid #eff1f2;font-size:12.5px;color:#71747d">Exec sponsor · <b style="color:#52545d">Lindsay</b></div>
+              </div>
+            </div>
+
+            <!-- SIGN-UP TRACKS -->
+            <sc-for list="{{ a.tracks }}" as="track" hint-placeholder-count="3">
+              <div style="margin-bottom:30px">
+                <div style="background:{{ track.accent }};margin:0 -44px 24px;padding:30px 44px;color:#fff">
+                  <div style="display:flex;align-items:center;gap:14px">
+                    <span style="display:inline-flex;align-items:center;justify-content:center;min-width:52px;height:52px;padding:0 12px;border-radius:14px;background:rgba(255,255,255,.16);color:#fff;font-family:'FtMade',serif;font-size:28px;line-height:1">{{ track.num }}</span>
+                    <div>
+                      <div style="font-weight:700;font-size:10.5px;letter-spacing:.16em;color:rgba(255,255,255,.82);margin-bottom:3px">TRACK {{ track.num }}</div>
+                      <div style="font-weight:700;font-size:23px;line-height:1.1;color:#fff">{{ track.name }}</div>
+                    </div>
+                  </div>
+                  <p style="margin:16px 0 0;font-size:14px;line-height:1.55;color:rgba(255,255,255,.9);max-width:520px">{{ track.question }}</p>
+                </div>
+
+                <div style="display:flex;flex-direction:column;gap:12px">
+                  <sc-for list="{{ track.workshops }}" as="w" hint-placeholder-count="3">
+                    <div onClick="{{ w.onToggle }}" style="position:relative;cursor:pointer;background:#fff;border:1px solid #dedfe3;border-radius:14px;padding:18px 20px;transition:box-shadow .2s,transform .2s" style-hover="box-shadow:0 10px 22px -14px rgba(16,24,40,.28);transform:translateY(-1px)">
+                      <sc-if value="{{ w.selected }}" hint-placeholder-val="{{ false }}">
+                        <div style="position:absolute;inset:0;border:2px solid {{ w.accent }};border-radius:14px;pointer-events:none"></div>
+                        <div style="position:absolute;top:-11px;left:18px;display:flex;align-items:center;gap:6px;height:24px;padding:0 12px;border-radius:9999px;background:{{ w.accent }};color:#fff;font-weight:700;font-size:12px;letter-spacing:.02em">{{ w.rankLabel }} PICK</div>
+                      </sc-if>
+                      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                        <span style="font-weight:600;font-size:11px;letter-spacing:.06em;color:#9fa2ab;white-space:nowrap">{{ w.code }}</span>
+                        <span style="font-size:12px;color:#71747d">Sponsor · <b style="color:#52545d">{{ w.sponsor }}</b></span>
+                      </div>
+                      <h4 style="margin:0 0 10px;font-size:18px;font-weight:600;line-height:1.25;color:#171820">{{ w.title }}</h4>
+                      <p style="margin:0 0 14px;font-size:13.5px;line-height:1.55;color:#52545d">{{ w.prompt }}</p>
+                      <div style="border-left:2px solid {{ w.accent }};padding-left:12px;margin-bottom:16px">
+                        <div style="font-weight:600;font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:{{ w.accent }};margin-bottom:3px">A possible direction</div>
+                        <div style="font-size:13.5px;font-style:italic;color:#3e4049">{{ w.teaser }}</div>
+                      </div>
+                      <div style="display:flex;align-items:center;gap:8px;font-weight:600;font-size:13.5px;color:{{ w.actionColor }}">
+                        <span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:9999px;border:1.5px solid {{ w.actionColor }}">{{ w.actionMark }}</span>
+                        {{ w.actionLabel }}
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+
+            <!-- RANKING PANEL (bottom) -->
+            <div style="background:#fafeff;border:1px solid #d6f4fb;border-radius:16px;padding:22px 24px;margin-top:8px">
+              <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px">
+                <h3 style="margin:0;font-size:19px;font-weight:700;color:#171820">Your ranking</h3>
+                <div style="font-size:12.5px;color:#71747d">{{ a.count }} of 4 · pick up to four</div>
+              </div>
+              <p style="margin:0 0 16px;font-size:13.5px;line-height:1.5;color:#71747d">Choose sessions from the tracks above, then use the arrows to put them in the order you'd most like to join.</p>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <sc-for list="{{ a.slots }}" as="slot" hint-placeholder-count="4">
+                  <div>
+                    <sc-if value="{{ slot.filled }}" hint-placeholder-val="{{ false }}">
+                      <div style="display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #dedfe3;border-radius:12px;padding:10px 12px">
+                        <span style="font-family:'FtMade',serif;font-size:22px;color:{{ slot.accent }};min-width:20px;text-align:center">{{ slot.rank }}</span>
+                        <div style="flex:1;min-width:0"><div style="font-weight:600;font-size:14px;color:#282a31;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ slot.title }}</div><div style="font-size:11.5px;color:#71747d">{{ slot.trackName }}</div></div>
+                        <div style="display:flex;gap:4px;flex:none">
+                          <button onClick="{{ slot.onUp }}" title="Move up" style="width:28px;height:28px;border-radius:8px;border:1px solid #dedfe3;background:#fff;color:#52545d;cursor:pointer;display:flex;align-items:center;justify-content:center">↑</button>
+                          <button onClick="{{ slot.onDown }}" title="Move down" style="width:28px;height:28px;border-radius:8px;border:1px solid #dedfe3;background:#fff;color:#52545d;cursor:pointer;display:flex;align-items:center;justify-content:center">↓</button>
+                          <button onClick="{{ slot.onRemove }}" title="Remove" style="width:28px;height:28px;border-radius:8px;border:1px solid #dedfe3;background:#fff;color:#c92e3f;cursor:pointer;display:flex;align-items:center;justify-content:center">×</button>
+                        </div>
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{ slot.empty }}" hint-placeholder-val="{{ true }}">
+                      <div style="display:flex;align-items:center;gap:12px;border:1.5px dashed #cbe0f1;border-radius:12px;padding:10px 12px">
+                        <span style="font-family:'FtMade',serif;font-size:22px;color:#cbcdd2;min-width:20px;text-align:center">{{ slot.rank }}</span>
+                        <span style="font-size:13px;color:#9fa2ab">Pick a session above to fill this slot</span>
+                      </div>
+                    </sc-if>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+
+            <!-- EMAIL + SUBMIT -->
+            <div style="padding-top:26px;margin-top:8px">
+              <label style="display:block;font-weight:600;font-size:13px;color:#3e4049;margin-bottom:7px">Your IWBI email</label>
+              <input type="email" value="{{ a.email }}" onInput="{{ a.onEmail }}" placeholder="you@wellcertified.com" style="width:100%;height:46px;padding:0 16px;border:1px solid #dedfe3;border-radius:10px;font-family:inherit;font-size:15px;color:#282a31;background:#fff;margin-bottom:16px">
+              <sc-if value="{{ a.canSubmit }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.onSubmit }}" style="width:100%;height:50px;border-radius:9999px;border:none;font-family:inherit;font-weight:700;font-size:15px;background:#0f748a;color:#fff;cursor:pointer">Submit my ranking</button></sc-if>
+              <sc-if value="{{ a.cantSubmit }}" hint-placeholder-val="{{ true }}"><button style="width:100%;height:50px;border-radius:9999px;border:none;font-family:inherit;font-weight:700;font-size:15px;background:#eff1f2;color:#9fa2ab;cursor:not-allowed">Submit my ranking</button></sc-if>
+              <p style="margin:12px 0 0;text-align:center;font-size:12.5px;color:#9fa2ab">{{ a.hint }}</p>
+            </div>
+
+          </div>
+        </div>
+        </sc-if>
+      </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  // ── Connect to Google Sheet ───────────────────────────────
+  // Paste your Google Apps Script Web App URL below and every
+  // submission POSTs straight into the Sheet. Until then, submit
+  // still works as a prototype (records + shows a copyable summary).
+  //
+  // Apps Script (doPost) sketch:
+  //   const d = JSON.parse(e.postData.contents);
+  //   sheet.appendRow([new Date(), d.email, d.variant, ...d.picks]);
+  SHEET_ENDPOINT = "PASTE_APPS_SCRIPT_WEB_APP_URL";
+
+  state = {
+    a: { email: "", order: [] },
+    b: { email: "", ranks: {} },
+    bExpanded: {},
+    aSubmitted: false, bSubmitted: false,
+    aCopied: false, bCopied: false,
+  };
+
+  TRACK1 = [
+    { title: "A truly integrated product needs a fully integrated team", desc: "Designing the team structure, roles, and collaboration model that let product, tech, and standards operate as one fully integrated unit." },
+    { title: "Globalization for maximum impact", desc: "Global-first principles \u2014 what we standardize, what we adapt locally, and how we scale adoption worldwide rather than expanding out from the U.S." },
+    { title: "The ties that bind", desc: "The operating model, governance, and hand-offs that let a small team move fast, stay aligned, and deliver an exceptional customer experience." },
+    { title: "IWBI is all in", desc: "Turning everything Track 01 uncovers into a future-state org design \u2014 leadership roles, accountabilities, and a priority hiring roadmap." },
+  ];
+
+  SIGNUP = [
+    { num: "02", name: "Health Intelligence as the Compass", accent: "#149ebd", accentSoft: "#dbf3fa",
+      question: "What does it mean to be the world's premier health intelligence platform — and what's the 2\u20134 year vision we're building toward?",
+      workshops: [
+        { id: "t2w1", code: "WORKSHOP 1", title: "Health intelligence as a service", sponsor: "Andre",
+          prompt: "What would health intelligence as a service actually do for a client?",
+          teaser: "A client-facing experience that turns health data into decisions." },
+        { id: "t2w2", code: "WORKSHOP 2", title: "Good data in, good data out", sponsor: "Karen",
+          prompt: "How will we partner with building performance and occupant experience partners to generate value and meaning from bidirectional data?",
+          teaser: "A new shape for how partners exchange \u2014 and are rewarded for \u2014 data." },
+        { id: "t2w3", code: "WORKSHOP 3", title: "Responsible AI and spatial intelligence", sponsor: "Jodie",
+          prompt: "How will IWBI establish itself as the leader of responsible AI in the built environment?",
+          teaser: "A framework for human-centric, responsible AI inside the WELL Standard." },
+      ] },
+    { num: "03", name: "One WELL as the Foundation", accent: "#17aa8d", accentSoft: "#daf5ec",
+      question: "How are we strengthening our core product to deliver on our vision for health intelligence?",
+      workshops: [
+        { id: "t3w1", code: "WORKSHOP 1", title: "Calculating your return on WELL", sponsor: "Xue Ya & Minjia",
+          prompt: "How will we help our customers calculate the ROI of their participation in WELL \u2014 down to the asset level?",
+          teaser: "A credible way to put a real number on the value of WELL." },
+        { id: "t3w2", code: "WORKSHOP 2", title: "Instilling confidence and inspiring action", sponsor: "Kate",
+          prompt: "How can we help prospects learn and enroll with confidence?",
+          teaser: "A guided experience that helps prospects choose with confidence." },
+        { id: "t3w3", code: "WORKSHOP 3", title: "Celebrating progress", sponsor: "Priscilla & Liz P.",
+          prompt: "Beyond formal WELL achievements, how do we recognize ongoing progress \u2014 and amplify the post-achievement moments?",
+          teaser: "New ways to recognize momentum between the big milestones." },
+      ] },
+    { num: "04", name: "Market Enablement at Scale", accent: "#0f748a", accentSoft: "#d6eef2",
+      question: "How will we fully activate our extended global ecosystem to drive growth?",
+      workshops: [
+        { id: "t4w1", code: "WORKSHOP 1", title: "Who sells WELL over time?", sponsor: "Kate",
+          prompt: "As WELL becomes a continuous discipline, how do the roles of our professionals and providers evolve \u2014 and how do we bring them along?",
+          teaser: "A picture of how our professional community grows alongside us." },
+        { id: "t4w2", code: "WORKSHOP 2", title: "Where Works with WELL meets One WELL", sponsor: "Sian",
+          prompt: "When WELL becomes a continuous data layer rather than a checklist, how do products and providers stay discoverable, validated, and valuable?",
+          teaser: "A model that keeps providers discoverable, validated, and valuable." },
+        { id: "t4w3", code: "WORKSHOP 3", title: "The market transformation playbook", sponsor: "Jason",
+          prompt: "How can IWBI sharpen its theory of market transformation, particularly around persistent market asymmetries?",
+          teaser: "Bold new market tools that reach beyond WELL itself." },
+        { id: "t4w4", code: "WORKSHOP 4", title: "Storytelling and truth-telling at scale", sponsor: "Monica",
+          prompt: "How will we exponentially grow our community through stories and science?",
+          teaser: "An AI-assisted way to turn one piece of science into many stories." },
+      ] },
+  ];
+
+  ordinal(n) { return ["", "1st", "2nd", "3rd", "4th"][n] || (n + "th"); }
+  byId(id) { for (const t of this.SIGNUP) for (const w of t.workshops) if (w.id === id) return w; return null; }
+  trackOf(id) { for (const t of this.SIGNUP) for (const w of t.workshops) if (w.id === id) return t; return null; }
+  validEmail(e) { return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test((e || "").trim()); }
+
+  // ── A actions ──
+  toggleA(id) {
+    const order = this.state.a.order.slice();
+    const i = order.indexOf(id);
+    if (i >= 0) order.splice(i, 1);
+    else if (order.length < 4) order.push(id);
+    this.setState({ a: { ...this.state.a, order }, aCopied: false });
+  }
+  moveA(id, dir) {
+    const order = this.state.a.order.slice();
+    const i = order.indexOf(id); const j = i + dir;
+    if (i < 0 || j < 0 || j >= order.length) return;
+    [order[i], order[j]] = [order[j], order[i]];
+    this.setState({ a: { ...this.state.a, order } });
+  }
+
+  // ── B actions ──
+  setRankB(id, n) {
+    const ranks = { ...this.state.b.ranks };
+    if (ranks[id] === n) { delete ranks[id]; }
+    else { for (const k in ranks) if (ranks[k] === n) delete ranks[k]; ranks[id] = n; }
+    this.setState({ b: { ...this.state.b, ranks }, bCopied: false });
+  }
+  toggleTease(id) {
+    this.setState({ bExpanded: { ...this.state.bExpanded, [id]: !this.state.bExpanded[id] } });
+  }
+
+  setEmail(v, val) { this.setState({ [v]: { ...this.state[v], email: val } }); }
+
+  async postToSheet(payload) {
+    if (!/^https:\/\//.test(this.SHEET_ENDPOINT)) return;
+    try {
+      await fetch(this.SHEET_ENDPOINT, { method: "POST", mode: "no-cors",
+        headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
+    } catch (e) { /* prototype: silent */ }
+  }
+
+  submit(variant) {
+    const picks = variant === "a" ? this.orderA() : this.orderB();
+    const email = this.state[variant].email;
+    if (!this.validEmail(email) || picks.length === 0) return;
+    const payload = {
+      variant, email, submittedAt: new Date().toISOString(),
+      picks: picks.map((p, i) => ({ rank: i + 1, workshop: p.title, track: p.track })),
+    };
+    this.postToSheet(payload);
+    this.setState(variant === "a" ? { aSubmitted: true } : { bSubmitted: true });
+  }
+
+  orderA() {
+    return this.state.a.order.map((id) => ({ title: this.byId(id).title, track: "Track " + this.trackOf(id).num + " · " + this.trackOf(id).name, accent: this.trackOf(id).accent }));
+  }
+  orderB() {
+    return Object.entries(this.state.b.ranks).sort((x, y) => x[1] - y[1])
+      .map(([id]) => ({ title: this.byId(id).title, track: "Track " + this.trackOf(id).num + " · " + this.trackOf(id).name, accent: this.trackOf(id).accent }));
+  }
+  summaryText(picks, email) {
+    return "IWBI Summer Workshops \u2014 ranking\n" + email + "\n\n" +
+      picks.map((p, i) => (i + 1) + ". " + p.title + "  (" + p.track + ")").join("\n");
+  }
+  copy(variant) {
+    const picks = variant === "a" ? this.orderA() : this.orderB();
+    const txt = this.summaryText(picks, this.state[variant].email);
+    try { navigator.clipboard.writeText(txt); } catch (e) {}
+    this.setState(variant === "a" ? { aCopied: true } : { bCopied: true });
+  }
+
+  chipStyle(active, accent) {
+    const base = "min-width:26px;height:26px;padding:0 4px;border-radius:9999px;font-family:inherit;font-weight:700;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;";
+    return active
+      ? base + "background:" + accent + ";border:1px solid " + accent + ";color:#fff;"
+      : base + "background:#fff;border:1px solid #dedfe3;color:#9fa2ab;";
+  }
+
+  renderVals() {
+    const s = this.state;
+
+    // ---- Option A ----
+    const orderA = s.a.order;
+    const rankOfA = (id) => { const i = orderA.indexOf(id); return i < 0 ? null : i + 1; };
+    const tracksA = this.SIGNUP.map((t) => ({
+      num: t.num, accent: t.accent, accentSoft: t.accentSoft, name: t.name, question: t.question, nameUpper: t.name.toUpperCase(),
+      workshops: t.workshops.map((w) => {
+        const rank = rankOfA(w.id); const selected = rank != null; const full = orderA.length >= 4 && !selected;
+        return {
+          ...w, accent: t.accent, selected, rankLabel: selected ? this.ordinal(rank) : "",
+          onToggle: () => this.toggleA(w.id),
+          actionColor: selected ? t.accent : (full ? "#cbcdd2" : "#0f748a"),
+          actionMark: selected ? "\u2713" : "+",
+          actionLabel: selected ? "Ranked " + this.ordinal(rank) + " \u00b7 tap to remove" : (full ? "Ranking full \u2014 remove one to swap" : "Add to my ranking"),
+        };
+      }),
+    }));
+    const slotsA = [0, 1, 2, 3].map((i) => {
+      const id = orderA[i];
+      if (!id) return { filled: false, empty: true, rank: i + 1 };
+      const w = this.byId(id); const t = this.trackOf(id);
+      return { filled: true, empty: false, rank: i + 1, title: w.title, trackName: "Track " + t.num + " \u00b7 " + t.name, accent: t.accent,
+        onUp: () => this.moveA(id, -1), onDown: () => this.moveA(id, 1), onRemove: () => this.toggleA(id) };
+    });
+    const aOk = this.validEmail(s.a.email) && orderA.length >= 1;
+    const submitBase = "width:100%;height:50px;border-radius:9999px;border:none;font-family:inherit;font-weight:700;font-size:15px;transition:background .15s;";
+    const aStyle = aOk ? submitBase + "background:#0f748a;color:#fff;cursor:pointer;" : submitBase + "background:#eff1f2;color:#9fa2ab;cursor:not-allowed;";
+    const aHint = orderA.length === 0 ? "Rank at least one session to submit." : (!this.validEmail(s.a.email) ? "Add your IWBI email to submit." : "Your picks flow into the summer workshop planning sheet.");
+
+    // ---- Option B ----
+    const ranksB = s.b.ranks;
+    const tracksB = this.SIGNUP.map((t) => ({
+      num: t.num, accent: t.accent, accentSoft: t.accentSoft, name: t.name, question: t.question, nameUpper: t.name.toUpperCase(),
+      workshops: t.workshops.map((w) => {
+        const r = ranksB[w.id] || null; const selected = r != null; const expanded = !!s.bExpanded[w.id];
+        return {
+          ...w, accent: t.accent, selected, expanded,
+          chips: [1, 2, 3, 4].map((n) => { const on = r === n; return { n, on, off: !on, onPick: () => this.setRankB(w.id, n) }; }),
+          onTease: () => this.toggleTease(w.id),
+          teaseLabel: expanded ? "Hide the spark" : "Imagine what you'd build",
+          teaseArrow: expanded ? "rotate(90deg)" : "none",
+        };
+      }),
+    }));
+    const bCount = Object.keys(ranksB).length;
+    const bOk = this.validEmail(s.b.email) && bCount >= 1;
+    const bSubmitBase = "flex:none;height:46px;padding:0 26px;border-radius:9999px;border:none;font-family:inherit;font-weight:700;font-size:15px;transition:background .15s;";
+    const bStyle = bOk ? bSubmitBase + "background:#0f748a;color:#fff;cursor:pointer;" : bSubmitBase + "background:#eff1f2;color:#9fa2ab;cursor:not-allowed;";
+    const bHint = bCount === 0 ? "Assign a rank to at least one session to submit." : (!this.validEmail(s.b.email) ? "Add your IWBI email to submit." : "Your picks flow into the summer workshop planning sheet.");
+
+    return {
+      track1: this.TRACK1,
+      a: {
+        editing: !s.aSubmitted, submitted: s.aSubmitted, tracks: tracksA, slots: slotsA, count: orderA.length,
+        email: s.a.email, onEmail: (e) => this.setEmail("a", e.target.value),
+        onSubmit: () => this.submit("a"), canSubmit: aOk, cantSubmit: !aOk, hint: aHint,
+        conf: this.orderA().map((p, i) => ({ rank: i + 1, title: p.title, track: p.track, accent: p.accent })),
+        onCopy: () => this.copy("a"), copyLabel: s.aCopied ? "Copied \u2713" : "Copy summary", onEdit: () => this.setState({ aSubmitted: false }),
+      },
+      b: {
+        editing: !s.bSubmitted, submitted: s.bSubmitted, tracks: tracksB, count: bCount,
+        email: s.b.email, onEmail: (e) => this.setEmail("b", e.target.value),
+        onSubmit: () => this.submit("b"), canSubmit: bOk, cantSubmit: !bOk, hint: bHint,
+        conf: this.orderB().map((p, i) => ({ rank: i + 1, title: p.title, track: p.track, accent: p.accent })),
+        onCopy: () => this.copy("b"), copyLabel: s.bCopied ? "Copied \u2713" : "Copy summary", onEdit: () => this.setState({ bSubmitted: false }),
+      },
+    };
+  }
+}
+</script>
+</body>
+</html>
