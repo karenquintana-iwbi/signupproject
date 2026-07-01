@@ -60,8 +60,17 @@
 
         <!-- EMAIL + SUBMIT -->
         <div class="form-footer">
-          <label for="email-input">Your IWBI email</label>
-          <input id="email-input" type="email" placeholder="you@wellcertified.com" class="email-input" autocomplete="email">
+          <label>Verify your IWBI identity</label>
+          <div id="g-signin-btn"></div>
+          <div id="signed-in-as" class="signed-in-as hidden">
+            <img id="signed-in-avatar" class="signed-in-avatar" alt="">
+            <div>
+              <div id="signed-in-name" class="signed-in-name"></div>
+              <div id="signed-in-email" class="signed-in-email"></div>
+            </div>
+            <button id="signout-btn" type="button" class="signout-link">Not you?</button>
+          </div>
+          <p id="signin-error" class="signin-error hidden"></p>
           <label for="timezone-input">What time zone will you be joining calls from during July and August?</label>
           <select id="timezone-input" class="email-input tz-select">
             <option value="" disabled selected>Select your time zone</option>
@@ -103,6 +112,7 @@
   </div>
 </div>
 
+<script src="https://accounts.google.com/gsi/client" async></script>
 <script src="app.js"></script>
 </body>
 </html>

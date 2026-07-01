@@ -150,6 +150,13 @@ input:focus { outline:none; border-color:#39c9ea !important; box-shadow:0 0 0 3p
 .form-footer label { display:block; font-weight:600; font-size:13px; color:#3e4049; margin-bottom:7px; }
 .email-input { width:100%; height:46px; padding:0 16px; border:1px solid #dedfe3; border-radius:10px; font-family:inherit; font-size:15px; color:#282a31; background:#fff; margin-bottom:16px; }
 select.email-input { cursor:pointer; }
+#g-signin-btn { margin-bottom:16px; }
+.signed-in-as { display:flex; align-items:center; gap:10px; padding:10px 12px; border:1px solid #dedfe3; border-radius:10px; margin-bottom:16px; }
+.signed-in-avatar { width:32px; height:32px; border-radius:9999px; }
+.signed-in-name { font-weight:600; font-size:13.5px; color:#282a31; }
+.signed-in-email { font-size:12px; color:#71747d; }
+.signout-link { margin-left:auto; background:none; border:none; color:#0f748a; font-family:inherit; font-size:12.5px; font-weight:600; cursor:pointer; }
+.signin-error { margin:0 0 16px; font-size:12.5px; color:#c92e3f; }
 .submit-btn { width:100%; height:50px; border-radius:9999px; border:none; font-family:inherit; font-weight:700; font-size:15px; cursor:pointer; background:#0f748a; color:#fff; transition:background .15s; }
 .submit-btn:disabled { background:#eff1f2; color:#9fa2ab; cursor:not-allowed; }
 .submit-hint { margin:12px 0 0; text-align:center; font-size:12.5px; color:#9fa2ab; }

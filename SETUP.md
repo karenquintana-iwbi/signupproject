@@ -3,7 +3,41 @@
 The live site lives in `docs/` (plain HTML/CSS/JS, no build step). `project/` is
 the original Claude Design export kept for reference — it's not deployed.
 
-## 1. Point submissions at your Google Sheet
+## 1. Set up Google Sign-In (Google Cloud Console)
+
+The form verifies the submitter's identity with "Sign in with Google,"
+restricted to `wellcertified.com` accounts — this replaces the old free-text
+email field, which had no way to confirm someone actually owned the address
+they typed. This step creates the credential that verification depends on,
+and only you (or someone with access to your Google Cloud/Workspace account)
+can do it — I don't have access to create it from here.
+
+1. Go to [console.cloud.google.com](https://console.cloud.google.com), signed
+   in as your `@wellcertified.com` account. Create a project (or reuse one),
+   e.g. "IWBI Summer Workshop Signup."
+2. **APIs & Services → OAuth consent screen** → User type **Internal**. This
+   should be available since the project is under a Workspace account — it
+   restricts sign-in to `wellcertified.com` accounts at Google's own login
+   screen, and skips Google's app-verification review entirely. *If your
+   Workspace admin has restricted who can create OAuth consent screens,
+   you'll need IT to grant that or set this up for you.* The default
+   `openid`/`email`/`profile` scopes are all that's needed — no extra scope
+   review.
+3. **APIs & Services → Credentials → Create Credentials → OAuth client ID**
+   → Application type **Web application**.
+   - **Authorized JavaScript origins**: add `https://karenquintana-iwbi.github.io`
+     (origin only — scheme + host, no `/signupproject` path). Add
+     `http://localhost:8000` too if you ever want to test locally.
+   - **Authorized redirect URIs**: leave empty — this flow returns the
+     credential straight to the page via a JS callback, not a redirect.
+   - Save, then copy the **Client ID** (ends in `.apps.googleusercontent.com`).
+     It's safe to paste into public client-side code — it's not a secret.
+     Ignore the "Client secret" field; this flow never uses it.
+4. Paste that same Client ID in **two places**, exactly matching:
+   - `docs/app.js` → `const GOOGLE_CLIENT_ID = "...";`
+   - The Apps Script below → `const GOOGLE_CLIENT_ID = "...";`
+
+## 2. Point submissions at your Google Sheet
 
 Target: **IWBI Summer Workshops Tracker**
 (`https://docs.google.com/spreadsheets/d/1Xn2vv8IGRkSf5JKayIixiQtk-WPB8dnZMunemyv2xsg`).
@@ -26,13 +60,20 @@ with the planning tab.
 Because this endpoint has to be reachable from any visitor's browser with no
 login, it's deployed with "Who has access: Anyone" — which also means anyone
 who has the URL (visible in the page's public source) can POST to it
-directly, not just through the form. The script below guards against the two
-concrete risks that creates: it rejects submissions that aren't a
-`@wellcertified.com` email, and it neutralizes spreadsheet formula injection
-(a value like `=IMPORTXML(...)` sent as the email, which Sheets would
-otherwise execute as a live formula the next time someone opens the tab) by
-prefixing any cell value that starts with `=`, `+`, `-`, or `@` with a
-leading apostrophe so Sheets always stores it as plain text.
+directly, not just through the form. The script no longer trusts a raw
+`email` field sent by the client at all: it takes the Google ID token the
+Sign-In button produced and re-verifies it with Google's own `tokeninfo`
+endpoint before writing anything, checking that the token was minted for
+*this* app (`aud`), for a verified `wellcertified.com` account (`hd`), and
+hasn't expired. Verification failures are logged to a separate **`Rejected`**
+tab (reason + whatever email claim was present, never the raw token itself)
+instead of silently vanishing — since the client can't read the response
+here (see the `no-cors` note below), that tab is the only way to notice a
+rejected submission after the fact. It also still neutralizes spreadsheet
+formula injection (a value like `=IMPORTXML(...)` in any field, which Sheets
+would otherwise execute as a live formula the next time someone opens the
+tab) by prefixing any cell value that starts with `=`, `+`, `-`, or `@` with
+a leading apostrophe so Sheets always stores it as plain text.
 
 1. Open the tracker spreadsheet → **Extensions → Apps Script**.
 2. Replace the code with:
@@ -40,21 +81,62 @@ leading apostrophe so Sheets always stores it as plain text.
    ```js
    const SPREADSHEET_ID = "1Xn2vv8IGRkSf5JKayIixiQtk-WPB8dnZMunemyv2xsg";
    const SHEET_NAME = "Signups";
+   const REJECTED_SHEET_NAME = "Rejected";
    const HEADER = ["Submitted at", "Email", "Time zone", "Rank 1", "Rank 2", "Rank 3", "Rank 4"];
-   const EMAIL_DOMAIN = "@wellcertified.com";
+   const GOOGLE_CLIENT_ID = "159241994186-hn1u6dqpugndna1u3jn4sjrqh4iioqgh.apps.googleusercontent.com";
+   const HD_DOMAIN = "wellcertified.com";
+   const EMAIL_DOMAIN = "@wellcertified.com"; // defense-in-depth fallback, see note below
 
    function sanitizeCell(v) {
      const s = String(v == null ? "" : v);
      return /^[=+\-@]/.test(s) ? "'" + s : s;
    }
 
+   // Verifies a Google ID token against Google's own endpoint rather than
+   // trusting the client-supplied email — Apps Script has no JWT/JWKS library,
+   // and tokeninfo already checks the signature and expiry for us.
+   function verifyGoogleIdToken(idToken) {
+     if (!idToken) return { error: "missing_token" };
+     const url = "https://oauth2.googleapis.com/tokeninfo?id_token=" + encodeURIComponent(idToken);
+     let resp;
+     for (let attempt = 0; attempt < 3; attempt++) {
+       try {
+         resp = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+         break;
+       } catch (err) {
+         if (attempt === 2) return { error: "network_error", details: err.message };
+         Utilities.sleep(300 * (attempt + 1));
+       }
+     }
+     if (resp.getResponseCode() !== 200) return { error: "invalid_or_expired_token" };
+     const info = JSON.parse(resp.getContentText());
+     if (info.aud !== GOOGLE_CLIENT_ID) return { error: "client_id_mismatch" };
+     if (String(info.email_verified) !== "true") return { error: "email_not_verified", details: info.email };
+     if (info.hd !== HD_DOMAIN) return { error: "wrong_domain", details: info.email };
+     const email = String(info.email || "").trim().toLowerCase();
+     if (!email.endsWith(EMAIL_DOMAIN)) return { error: "domain_suffix_check_failed", details: email };
+     return { email: email };
+   }
+
+   function logRejected(reason, details) {
+     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+     let sheet = ss.getSheetByName(REJECTED_SHEET_NAME);
+     if (!sheet) {
+       sheet = ss.insertSheet(REJECTED_SHEET_NAME);
+       sheet.appendRow(["Logged at", "Reason", "Details"]);
+     }
+     sheet.appendRow([new Date().toISOString(), reason, details || ""].map(sanitizeCell));
+   }
+
    function doPost(e) {
      try {
        const d = JSON.parse(e.postData.contents);
-       const email = String(d.email || "").trim().toLowerCase();
-       if (!email.endsWith(EMAIL_DOMAIN)) {
-         return ContentService.createTextOutput("rejected: email must be a " + EMAIL_DOMAIN + " address");
+       const verified = verifyGoogleIdToken(String(d.idToken || ""));
+       if (!verified.email) {
+         logRejected(verified.error, verified.details);
+         return ContentService.createTextOutput("rejected: " + verified.error);
        }
+       const email = verified.email;
 
        const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
        let sheet = ss.getSheetByName(SHEET_NAME);
@@ -88,6 +170,11 @@ leading apostrophe so Sheets always stores it as plain text.
    }
    ```
 
+   `EMAIL_DOMAIN` is kept as a cheap fallback check even though `HD_DOMAIN`
+   (verified inside the signed token) is what actually closes the
+   impersonation gap — nobody can forge `hd` inside a Google-signed token the
+   way they could forge a raw `email` field in a POST body.
+
 3. **Deploy → Manage deployments → pick the existing web app deployment →
    Edit (pencil icon) → Version: New version → Deploy.**
    Using "New version" on the existing deployment (rather than creating a
@@ -103,14 +190,18 @@ leading apostrophe so Sheets always stores it as plain text.
 
    Note: the request uses `mode:"no-cors"`, so the browser can't read a
    response back (Apps Script web apps don't return CORS headers). That's
-   fine — the row still lands in the Sheet. The confirmation screen and its
-   "Copy summary" button don't depend on reading that response.
+   fine for a successful submission — the row still lands in the Sheet, and
+   the confirmation screen and "Copy summary" button don't depend on reading
+   that response. It does mean a *rejected* submission still shows the same
+   "You're in" confirmation to the visitor with no error — that's exactly
+   why rejections are logged to the `Rejected` tab above, so you have a way
+   to notice them after the fact.
 
 I don't have Apps Script or Sheets write access from here (only read access
 to Drive), so the paste-and-redeploy step needs to happen in your (or
 Shekhar's) browser.
 
-## 2. Host it on GitHub Pages
+## 3. Host it on GitHub Pages
 
 This repo is already laid out for Pages: the site is a static folder at
 `docs/` on `main`.
