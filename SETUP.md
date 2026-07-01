@@ -12,56 +12,75 @@ That spreadsheet's existing tab holds sponsor/anchor-attendee planning data —
 the same info the signup form is deliberately designed to keep hidden from
 staff. So submissions go to their **own tab, `Signups`**, not the planning
 tab. The script below creates that tab automatically (with a header row) the
-first time it runs, so there's nothing to set up by hand in the sheet itself.
+first time it runs if it doesn't exist yet.
+
+The sheet holds **one row per email** — resubmitting (e.g. via "Edit my
+picks") overwrites that person's existing row instead of adding a new one.
+Each Rank column stores the workshop's short code (e.g. `T2.2`) from the
+tracker's own `T#.#` numbering, not the full title, so it lines up directly
+with the planning tab.
 
 1. Open the tracker spreadsheet → **Extensions → Apps Script**.
-2. Replace the default code with:
+2. Replace the code with:
 
    ```js
    const SPREADSHEET_ID = "1Xn2vv8IGRkSf5JKayIixiQtk-WPB8dnZMunemyv2xsg";
    const SHEET_NAME = "Signups";
+   const HEADER = ["Submitted at", "Email", "Time zone", "Rank 1", "Rank 2", "Rank 3", "Rank 4"];
 
    function doPost(e) {
      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
      let sheet = ss.getSheetByName(SHEET_NAME);
      if (!sheet) {
        sheet = ss.insertSheet(SHEET_NAME);
-       sheet.appendRow(["Submitted at", "Email", "Rank", "Workshop", "Track"]);
+       sheet.appendRow(HEADER);
      }
+
      const d = JSON.parse(e.postData.contents);
-     (d.picks || []).forEach((p) => {
-       sheet.appendRow([d.submittedAt || new Date().toISOString(), d.email, p.rank, p.workshop, p.track]);
-     });
+     const picks = d.picks || [];
+     const row = [
+       d.submittedAt || new Date().toISOString(),
+       d.email,
+       d.timezone || "",
+       picks[0] ? picks[0].code : "",
+       picks[1] ? picks[1].code : "",
+       picks[2] ? picks[2].code : "",
+       picks[3] ? picks[3].code : "",
+     ];
+
+     const emails = sheet.getRange(2, 2, Math.max(sheet.getLastRow() - 1, 0), 1).getValues();
+     const existingRow = emails.findIndex((r) => r[0] === d.email);
+     if (existingRow >= 0) {
+       sheet.getRange(existingRow + 2, 1, 1, row.length).setValues([row]);
+     } else {
+       sheet.appendRow(row);
+     }
+
      return ContentService.createTextOutput("ok");
    }
    ```
 
-   (One row per pick, so you can pivot/sort by workshop to see popularity
-   across all four ranks — not just first choices.)
+3. **Deploy → Manage deployments → pick the existing web app deployment →
+   Edit (pencil icon) → Version: New version → Deploy.**
+   Using "New version" on the existing deployment (rather than creating a
+   brand-new one) keeps the same `/exec` URL, so `docs/app.js`'s
+   `SHEET_ENDPOINT` doesn't need to change.
 
-3. **Deploy → New deployment → Web app.**
+   If there's no existing deployment yet, use **Deploy → New deployment →
+   Web app** instead, with:
    - Execute as: **Me**
    - Who has access: **Anyone**
-4. Copy the resulting Web App URL (ends in `/exec`).
-5. In `docs/app.js`, set:
 
-   ```js
-   const SHEET_ENDPOINT = "https://script.google.com/macros/s/AKfycb.../exec";
-   ```
-
-6. Commit and push. No further code changes are needed — the form POSTs
-   directly from the visitor's browser to that URL.
+   and copy the resulting `/exec` URL into `docs/app.js`'s `SHEET_ENDPOINT`.
 
    Note: the request uses `mode:"no-cors"`, so the browser can't read a
    response back (Apps Script web apps don't return CORS headers). That's
    fine — the row still lands in the Sheet. The confirmation screen and its
    "Copy summary" button don't depend on reading that response.
 
-I don't have Apps Script deployment access from here (only read access to
-Drive), so steps 1–4 need to happen in your (or Shekhar's) browser — but the
-script above is copy-paste ready with the spreadsheet ID already filled in.
-Send me the `/exec` URL once you have it and I'll drop it into `app.js` and
-commit.
+I don't have Apps Script or Sheets write access from here (only read access
+to Drive), so the paste-and-redeploy step needs to happen in your (or
+Shekhar's) browser.
 
 ## 2. Host it on GitHub Pages
 
