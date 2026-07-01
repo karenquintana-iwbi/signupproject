@@ -14,6 +14,10 @@
  */
 const SHEET_ENDPOINT = "https://script.google.com/macros/s/AKfycbzfoFYsnLqj3Ia9Mg2fM7lnj2SaiogswNfjFCjvknAY4ONoN1yR54h4qdW1ObBkn9iFLg/exec";
 
+// Paste the OAuth Client ID from Google Cloud Console here — see SETUP.md.
+// Must match the GOOGLE_CLIENT_ID checked server-side in the Apps Script.
+const GOOGLE_CLIENT_ID = "";
+
 const TRACK1 = [
   { title: "A truly integrated product needs a fully integrated team", desc: "Designing the team structure, roles, and collaboration model that let product, tech, and standards operate as one fully integrated unit." },
   { title: "Globalization for maximum impact", desc: "Global-first principles — what we standardize, what we adapt locally, and how we scale adoption worldwide rather than expanding out from the U.S." },
@@ -66,12 +70,26 @@ const SIGNUP = [
     ] },
 ];
 
-const state = { order: [], email: "", timezone: "" };
+const state = { order: [], timezone: "", idToken: null, profile: null };
 
 function ordinal(n) { return ["", "1st", "2nd", "3rd", "4th"][n] || (n + "th"); }
 function byId(id) { for (const t of SIGNUP) for (const w of t.workshops) if (w.id === id) return w; return null; }
 function trackOf(id) { for (const t of SIGNUP) for (const w of t.workshops) if (w.id === id) return t; return null; }
-function validEmail(e) { return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test((e || "").trim()); }
+
+// Decodes a Google ID token's payload for display only — NOT a security
+// check. The Apps Script backend is the actual trust boundary; it re-verifies
+// the raw token with Google before trusting any of these claims.
+function decodeJwtPayload(jwt) {
+  const b64 = jwt.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+  return JSON.parse(decodeURIComponent(escape(atob(b64))));
+}
+
+function tokenIsFresh() {
+  if (!state.idToken) return false;
+  try { return decodeJwtPayload(state.idToken).exp * 1000 > Date.now(); }
+  catch (e) { return false; }
+}
+
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
@@ -176,15 +194,66 @@ function renderRankSlots() {
   document.getElementById("rank-count").textContent = String(state.order.length);
 }
 
+// ── Identity (Google Sign-In) ───────────────────────────────────
+function handleCredentialResponse(response) {
+  const payload = decodeJwtPayload(response.credential);
+  state.idToken = response.credential;
+  state.profile = { email: payload.email, name: payload.name, picture: payload.picture, hd: payload.hd };
+  document.getElementById("signin-error").classList.add("hidden");
+  renderIdentity();
+  updateSubmitState();
+}
+
+function renderIdentity() {
+  const box = document.getElementById("signed-in-as");
+  const btnHolder = document.getElementById("g-signin-btn");
+  if (state.idToken && state.profile) {
+    document.getElementById("signed-in-avatar").src = state.profile.picture || "";
+    document.getElementById("signed-in-name").textContent = state.profile.name || "";
+    document.getElementById("signed-in-email").textContent = state.profile.email || "";
+    box.classList.remove("hidden");
+    btnHolder.classList.add("hidden");
+  } else {
+    box.classList.add("hidden");
+    btnHolder.classList.remove("hidden");
+  }
+}
+
+function signOut() {
+  if (window.google) google.accounts.id.disableAutoSelect();
+  state.idToken = null;
+  state.profile = null;
+  renderIdentity();
+  updateSubmitState();
+}
+
+// The GIS <script async> tag may still be loading when DOMContentLoaded
+// fires, so retry briefly instead of assuming window.google already exists.
+function initGoogleSignIn() {
+  if (!GOOGLE_CLIENT_ID) return;
+  if (!window.google || !window.google.accounts) {
+    setTimeout(initGoogleSignIn, 50);
+    return;
+  }
+  google.accounts.id.initialize({
+    client_id: GOOGLE_CLIENT_ID,
+    callback: handleCredentialResponse,
+    hd: "wellcertified.com",
+  });
+  google.accounts.id.renderButton(document.getElementById("g-signin-btn"), {
+    type: "standard", theme: "outline", size: "large", width: 320, text: "signin_with",
+  });
+}
+
 // ── Submit button + hint (kept separate so the email input never re-renders) ──
 function updateSubmitState() {
   const btn = document.getElementById("submit-btn");
   const hint = document.getElementById("submit-hint");
-  const ok = validEmail(state.email) && !!state.timezone && state.order.length >= 1;
+  const ok = tokenIsFresh() && !!state.timezone && state.order.length >= 1;
   btn.disabled = !ok;
   hint.textContent = state.order.length === 0
     ? "Rank at least one session to submit."
-    : (!validEmail(state.email) ? "Add your IWBI email to submit."
+    : (!tokenIsFresh() ? "Sign in with your IWBI Google account to submit."
       : (!state.timezone ? "Select your time zone to submit."
         : "Your picks flow into the summer workshop planning sheet."));
 }
@@ -228,7 +297,7 @@ function summaryText(picks, email) {
 
 function renderConfirmation() {
   const picks = orderedPicks();
-  document.getElementById("confirm-email").textContent = state.email;
+  document.getElementById("confirm-email").textContent = state.profile.email;
   document.getElementById("confirm-rows").innerHTML = picks.map((p, i) => `
     <div class="confirm-row">
       <span class="confirm-rank" style="--accent:${p.accent}">${i + 1}</span>
@@ -238,9 +307,20 @@ function renderConfirmation() {
 
 function submit() {
   const picks = orderedPicks();
-  if (!validEmail(state.email) || !state.timezone || picks.length === 0) return;
+  if (!tokenIsFresh() || !state.timezone || picks.length === 0) {
+    if (state.idToken && !tokenIsFresh()) {
+      state.idToken = null;
+      state.profile = null;
+      renderIdentity();
+      const err = document.getElementById("signin-error");
+      err.textContent = "Your sign-in expired — please sign in again.";
+      err.classList.remove("hidden");
+    }
+    updateSubmitState();
+    return;
+  }
   const payload = {
-    email: state.email,
+    idToken: state.idToken,
     timezone: state.timezone,
     submittedAt: new Date().toISOString(),
     picks: picks.map((p, i) => ({ rank: i + 1, workshop: p.title, track: p.track, code: p.sheetCode })),
@@ -252,7 +332,7 @@ function submit() {
 }
 
 function copySummary() {
-  const txt = summaryText(orderedPicks(), state.email);
+  const txt = summaryText(orderedPicks(), state.profile.email);
   const btn = document.getElementById("copy-btn");
   navigator.clipboard.writeText(txt).then(() => {
     btn.textContent = "Copied ✓";
@@ -263,6 +343,8 @@ function copySummary() {
 function editPicks() {
   document.getElementById("confirm-view").classList.add("hidden");
   document.getElementById("form-view").classList.remove("hidden");
+  renderIdentity();
+  updateSubmitState();
 }
 
 // ── Wire up ──────────────────────────────────────────────────────
@@ -291,11 +373,6 @@ document.addEventListener("DOMContentLoaded", () => {
     else if (action === "remove") toggleSelect(id);
   });
 
-  document.getElementById("email-input").addEventListener("input", (e) => {
-    state.email = e.target.value;
-    updateSubmitState();
-  });
-
   document.getElementById("timezone-input").addEventListener("change", (e) => {
     state.timezone = e.target.value;
     updateSubmitState();
@@ -304,4 +381,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("submit-btn").addEventListener("click", submit);
   document.getElementById("copy-btn").addEventListener("click", copySummary);
   document.getElementById("edit-btn").addEventListener("click", editPicks);
+  document.getElementById("signout-btn").addEventListener("click", signOut);
+
+  initGoogleSignIn();
 });
