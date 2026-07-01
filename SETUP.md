@@ -11,8 +11,11 @@ Target: **IWBI Summer Workshops Tracker**
 That spreadsheet's existing tab holds sponsor/anchor-attendee planning data —
 the same info the signup form is deliberately designed to keep hidden from
 staff. So submissions go to their **own tab, `Signups`**, not the planning
-tab. The script below creates that tab automatically (with a header row) the
-first time it runs if it doesn't exist yet.
+tab. The script below creates that tab automatically if it doesn't exist yet,
+and rewrites its header row on every submission — so if the tab already
+exists with an older header (e.g. from a previous version of this script),
+the next submission fixes it in place rather than leaving stale column
+labels above new-format data.
 
 The sheet holds **one row per email** — resubmitting (e.g. via "Edit my
 picks") overwrites that person's existing row instead of adding a new one.
@@ -31,10 +34,8 @@ with the planning tab.
    function doPost(e) {
      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
      let sheet = ss.getSheetByName(SHEET_NAME);
-     if (!sheet) {
-       sheet = ss.insertSheet(SHEET_NAME);
-       sheet.appendRow(HEADER);
-     }
+     if (!sheet) sheet = ss.insertSheet(SHEET_NAME);
+     sheet.getRange(1, 1, 1, HEADER.length).setValues([HEADER]);
 
      const d = JSON.parse(e.postData.contents);
      const picks = d.picks || [];
