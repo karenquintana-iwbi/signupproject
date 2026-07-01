@@ -49,7 +49,8 @@ with the planning tab.
        picks[3] ? picks[3].code : "",
      ];
 
-     const emails = sheet.getRange(2, 2, Math.max(sheet.getLastRow() - 1, 0), 1).getValues();
+     const dataRows = sheet.getLastRow() - 1;
+     const emails = dataRows > 0 ? sheet.getRange(2, 2, dataRows, 1).getValues() : [];
      const existingRow = emails.findIndex((r) => r[0] === d.email);
      if (existingRow >= 0) {
        sheet.getRange(existingRow + 2, 1, 1, row.length).setValues([row]);
