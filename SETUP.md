@@ -5,22 +5,39 @@ the original Claude Design export kept for reference — it's not deployed.
 
 ## 1. Point submissions at your Google Sheet
 
-1. Open the Google Sheet you want responses to land in.
-2. **Extensions → Apps Script**, and replace the default code with:
+Target: **IWBI Summer Workshops Tracker**
+(`https://docs.google.com/spreadsheets/d/1Xn2vv8IGRkSf5JKayIixiQtk-WPB8dnZMunemyv2xsg`).
+
+That spreadsheet's existing tab holds sponsor/anchor-attendee planning data —
+the same info the signup form is deliberately designed to keep hidden from
+staff. So submissions go to their **own tab, `Signups`**, not the planning
+tab. The script below creates that tab automatically (with a header row) the
+first time it runs, so there's nothing to set up by hand in the sheet itself.
+
+1. Open the tracker spreadsheet → **Extensions → Apps Script**.
+2. Replace the default code with:
 
    ```js
+   const SPREADSHEET_ID = "1Xn2vv8IGRkSf5JKayIixiQtk-WPB8dnZMunemyv2xsg";
+   const SHEET_NAME = "Signups";
+
    function doPost(e) {
-     const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+     let sheet = ss.getSheetByName(SHEET_NAME);
+     if (!sheet) {
+       sheet = ss.insertSheet(SHEET_NAME);
+       sheet.appendRow(["Submitted at", "Email", "Rank", "Workshop", "Track"]);
+     }
      const d = JSON.parse(e.postData.contents);
-     const picks = d.picks || [];
-     sheet.appendRow([
-       new Date(d.submittedAt || Date.now()),
-       d.email,
-       picks.map((p) => p.rank + ". " + p.workshop + " (" + p.track + ")").join("\n"),
-     ]);
+     (d.picks || []).forEach((p) => {
+       sheet.appendRow([d.submittedAt || new Date().toISOString(), d.email, p.rank, p.workshop, p.track]);
+     });
      return ContentService.createTextOutput("ok");
    }
    ```
+
+   (One row per pick, so you can pivot/sort by workshop to see popularity
+   across all four ranks — not just first choices.)
 
 3. **Deploy → New deployment → Web app.**
    - Execute as: **Me**
@@ -39,6 +56,12 @@ the original Claude Design export kept for reference — it's not deployed.
    response back (Apps Script web apps don't return CORS headers). That's
    fine — the row still lands in the Sheet. The confirmation screen and its
    "Copy summary" button don't depend on reading that response.
+
+I don't have Apps Script deployment access from here (only read access to
+Drive), so steps 1–4 need to happen in your (or Shekhar's) browser — but the
+script above is copy-paste ready with the spreadsheet ID already filled in.
+Send me the `/exec` URL once you have it and I'll drop it into `app.js` and
+commit.
 
 ## 2. Host it on GitHub Pages
 
