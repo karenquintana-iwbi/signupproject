@@ -62,6 +62,20 @@
         <div class="form-footer">
           <label for="email-input">Your IWBI email</label>
           <input id="email-input" type="email" placeholder="you@wellcertified.com" class="email-input" autocomplete="email">
+          <label for="timezone-input">What time zone will you be joining calls from during July and August?</label>
+          <select id="timezone-input" class="email-input tz-select">
+            <option value="" disabled selected>Select your time zone</option>
+            <option>Pacific Time (US)</option>
+            <option>Mountain Time (US)</option>
+            <option>Central Time (US)</option>
+            <option>Eastern Time (US)</option>
+            <option>UK (GMT/BST)</option>
+            <option>Central Europe (CET/CEST)</option>
+            <option>India (IST)</option>
+            <option>China (CST)</option>
+            <option>Australia (AEST/AEDT)</option>
+            <option>Other</option>
+          </select>
           <button id="submit-btn" class="submit-btn" disabled>Submit my ranking</button>
           <p id="submit-hint" class="submit-hint">Rank at least one session to submit.</p>
         </div>

@@ -25,48 +25,48 @@ const SIGNUP = [
   { num: "02", name: "Health Intelligence as the Compass", accent: "#149ebd",
     question: "What does it mean to be the world's premier health intelligence platform — and what's the 2–4 year vision we're building toward?",
     workshops: [
-      { id: "t2w1", code: "WORKSHOP 1", title: "Health intelligence as a service", sponsor: "Andre",
+      { id: "t2w1", code: "WORKSHOP 1", sheetCode: "T2.1", title: "Health intelligence as a service", sponsor: "Andre",
         prompt: "What would health intelligence as a service actually do for a client?",
         teaser: "A client-facing experience that turns health data into decisions." },
-      { id: "t2w2", code: "WORKSHOP 2", title: "Good data in, good data out", sponsor: "Karen",
+      { id: "t2w2", code: "WORKSHOP 2", sheetCode: "T2.2", title: "Good data in, good data out", sponsor: "Karen",
         prompt: "How will we partner with building performance and occupant experience partners to generate value and meaning from bidirectional data?",
         teaser: "A new shape for how partners exchange — and are rewarded for — data." },
-      { id: "t2w3", code: "WORKSHOP 3", title: "Responsible AI and spatial intelligence", sponsor: "Jodie",
+      { id: "t2w3", code: "WORKSHOP 3", sheetCode: "T2.3", title: "Responsible AI and spatial intelligence", sponsor: "Jodie",
         prompt: "How will IWBI establish itself as the leader of responsible AI in the built environment?",
         teaser: "A framework for human-centric, responsible AI inside the WELL Standard." },
     ] },
   { num: "03", name: "One WELL as the Foundation", accent: "#17aa8d",
     question: "How are we strengthening our core product to deliver on our vision for health intelligence?",
     workshops: [
-      { id: "t3w1", code: "WORKSHOP 1", title: "Calculating your return on WELL", sponsor: "Xue Ya & Minjia",
+      { id: "t3w1", code: "WORKSHOP 1", sheetCode: "T3.1", title: "Calculating your return on WELL", sponsor: "Xue Ya & Minjia",
         prompt: "How will we help our customers calculate the ROI of their participation in WELL — down to the asset level?",
         teaser: "A credible way to put a real number on the value of WELL." },
-      { id: "t3w2", code: "WORKSHOP 2", title: "Instilling confidence and inspiring action", sponsor: "Kate",
+      { id: "t3w2", code: "WORKSHOP 2", sheetCode: "T3.2", title: "Instilling confidence and inspiring action", sponsor: "Kate",
         prompt: "How can we help prospects learn and enroll with confidence?",
         teaser: "A guided experience that helps prospects choose with confidence." },
-      { id: "t3w3", code: "WORKSHOP 3", title: "Celebrating progress", sponsor: "Priscilla & Liz P.",
+      { id: "t3w3", code: "WORKSHOP 3", sheetCode: "T3.3", title: "Celebrating progress", sponsor: "Priscilla & Liz P.",
         prompt: "Beyond formal WELL achievements, how do we recognize ongoing progress — and amplify the post-achievement moments?",
         teaser: "New ways to recognize momentum between the big milestones." },
     ] },
   { num: "04", name: "Market Enablement at Scale", accent: "#0f748a",
     question: "How will we fully activate our extended global ecosystem to drive growth?",
     workshops: [
-      { id: "t4w1", code: "WORKSHOP 1", title: "Who sells WELL over time?", sponsor: "Kate",
+      { id: "t4w1", code: "WORKSHOP 1", sheetCode: "T4.1", title: "Who sells WELL over time?", sponsor: "Kate",
         prompt: "As WELL becomes a continuous discipline, how do the roles of our professionals and providers evolve — and how do we bring them along?",
         teaser: "A picture of how our professional community grows alongside us." },
-      { id: "t4w2", code: "WORKSHOP 2", title: "Where Works with WELL meets One WELL", sponsor: "Sian",
+      { id: "t4w2", code: "WORKSHOP 2", sheetCode: "T4.2", title: "Where Works with WELL meets One WELL", sponsor: "Sian",
         prompt: "When WELL becomes a continuous data layer rather than a checklist, how do products and providers stay discoverable, validated, and valuable?",
         teaser: "A model that keeps providers discoverable, validated, and valuable." },
-      { id: "t4w3", code: "WORKSHOP 3", title: "The market transformation playbook", sponsor: "Jason",
+      { id: "t4w3", code: "WORKSHOP 3", sheetCode: "T4.3", title: "The market transformation playbook", sponsor: "Jason",
         prompt: "How can IWBI sharpen its theory of market transformation, particularly around persistent market asymmetries?",
         teaser: "Bold new market tools that reach beyond WELL itself." },
-      { id: "t4w4", code: "WORKSHOP 4", title: "Storytelling and truth-telling at scale", sponsor: "Monica",
+      { id: "t4w4", code: "WORKSHOP 4", sheetCode: "T4.4", title: "Storytelling and truth-telling at scale", sponsor: "Monica",
         prompt: "How will we exponentially grow our community through stories and science?",
         teaser: "An AI-assisted way to turn one piece of science into many stories." },
     ] },
 ];
 
-const state = { order: [], email: "" };
+const state = { order: [], email: "", timezone: "" };
 
 function ordinal(n) { return ["", "1st", "2nd", "3rd", "4th"][n] || (n + "th"); }
 function byId(id) { for (const t of SIGNUP) for (const w of t.workshops) if (w.id === id) return w; return null; }
@@ -79,7 +79,7 @@ function escapeHtml(s) {
 function orderedPicks() {
   return state.order.map((id) => {
     const w = byId(id), t = trackOf(id);
-    return { title: w.title, track: "Track " + t.num + " · " + t.name, accent: t.accent };
+    return { title: w.title, track: "Track " + t.num + " · " + t.name, accent: t.accent, sheetCode: w.sheetCode };
   });
 }
 
@@ -180,11 +180,13 @@ function renderRankSlots() {
 function updateSubmitState() {
   const btn = document.getElementById("submit-btn");
   const hint = document.getElementById("submit-hint");
-  const ok = validEmail(state.email) && state.order.length >= 1;
+  const ok = validEmail(state.email) && !!state.timezone && state.order.length >= 1;
   btn.disabled = !ok;
   hint.textContent = state.order.length === 0
     ? "Rank at least one session to submit."
-    : (!validEmail(state.email) ? "Add your IWBI email to submit." : "Your picks flow into the summer workshop planning sheet.");
+    : (!validEmail(state.email) ? "Add your IWBI email to submit."
+      : (!state.timezone ? "Select your time zone to submit."
+        : "Your picks flow into the summer workshop planning sheet."));
 }
 
 function renderAll() {
@@ -236,11 +238,12 @@ function renderConfirmation() {
 
 function submit() {
   const picks = orderedPicks();
-  if (!validEmail(state.email) || picks.length === 0) return;
+  if (!validEmail(state.email) || !state.timezone || picks.length === 0) return;
   const payload = {
     email: state.email,
+    timezone: state.timezone,
     submittedAt: new Date().toISOString(),
-    picks: picks.map((p, i) => ({ rank: i + 1, workshop: p.title, track: p.track })),
+    picks: picks.map((p, i) => ({ rank: i + 1, workshop: p.title, track: p.track, code: p.sheetCode })),
   };
   postToSheet(payload);
   renderConfirmation();
@@ -290,6 +293,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("email-input").addEventListener("input", (e) => {
     state.email = e.target.value;
+    updateSubmitState();
+  });
+
+  document.getElementById("timezone-input").addEventListener("change", (e) => {
+    state.timezone = e.target.value;
     updateSubmitState();
   });
 
