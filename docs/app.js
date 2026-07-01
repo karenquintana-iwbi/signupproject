@@ -12,7 +12,7 @@
  * See SETUP.md for the Apps Script doPost snippet and step-by-step
  * deployment instructions.
  */
-const SHEET_ENDPOINT = "PASTE_APPS_SCRIPT_WEB_APP_URL";
+const SHEET_ENDPOINT = "https://script.google.com/macros/s/AKfycbzfoFYsnLqj3Ia9Mg2fM7lnj2SaiogswNfjFCjvknAY4ONoN1yR54h4qdW1ObBkn9iFLg/exec";
 
 const TRACK1 = [
   { title: "A truly integrated product needs a fully integrated team", desc: "Designing the team structure, roles, and collaboration model that let product, tech, and standards operate as one fully integrated unit." },
