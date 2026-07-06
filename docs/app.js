@@ -48,7 +48,7 @@ const SIGNUP = [
       { id: "t3w2", code: "WORKSHOP 2", sheetCode: "T3.2", title: "Instilling confidence and inspiring action", sponsor: "Kate",
         prompt: "How can we help prospects learn and enroll with confidence?",
         teaser: "A guided experience that helps prospects choose with confidence." },
-      { id: "t3w3", code: "WORKSHOP 3", sheetCode: "T3.3", title: "Celebrating progress", sponsor: "Priscilla & Liz P.",
+      { id: "t3w3", code: "WORKSHOP 3", sheetCode: "T3.3", title: "Celebrating progress", sponsor: "Laura C. & Liz P.",
         prompt: "Beyond formal WELL achievements, how do we recognize ongoing progress — and amplify the post-achievement moments?",
         teaser: "New ways to recognize momentum between the big milestones." },
     ] },
